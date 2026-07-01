@@ -18,7 +18,7 @@ jobs:
         with:
           node-version: '20'
           cache: 'npm'
-      - run: npm ci --omit=dev
+      - run: npm install --omit=dev
       - name: Generate weekly report
         env:
           DATA_SOURCE_URL: ${{ secrets.DATA_SOURCE_URL }}
