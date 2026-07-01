@@ -584,30 +584,45 @@ async function loadData() {
   try {
     let rows = [];
     if (CONFIG.SHEET_URL && !CONFIG.SHEET_URL.includes('YOUR_GOOGLE_SHEET')) {
-      const url = CONFIG.SHEET_URL.includes('script.google.com')
-        ? CONFIG.SHEET_URL + '?action=getData'
-        : CONFIG.SHEET_URL;
-      const res = await fetch(url);
+      // ตัดกระบวนการตรวจสอบเงื่อนไขที่ซับซ้อนออก แล้วยิง Fetch ตรงเข้าลิงก์ Apps Script ของคุณโดยตรง
+      const res = await fetch(CONFIG.SHEET_URL);
+      if (!res.ok) {
+        throw new Error('Network response was not ok: ' + res.status);
+      }
       const json = await res.json();
-      if (json.ok && json.data) {
-        rows = json.data; // already array of arrays from GAS
+      if (json && json.ok && json.data) {
+        rows = json.data; 
       } else {
-        throw new Error(json.msg || 'GAS error');
+        throw new Error(json ? json.msg : 'Invalid JSON structure');
       }
     } else {
       rows = getMockData();
     }
-    allRows = rows.slice(1); // skip header
+    
+    // หากดึงข้อมูลสำเร็จ ให้ดำเนินการตามปกติ
+    allRows = rows.slice(1); 
     buildWeekOptions();
     updateAgeBadges();
     filterWeek('all');
     hideLoading();
   } catch(e) {
-    console.error(e);
-    allRows = getMockData().slice(1);
+    console.error('เกิดข้อผิดพลาดในการดึงข้อมูลจากชีต แต่ระบบจะสลับไปใช้ข้อมูลจำลองแทนเพื่อไม่ให้ค้าง:', e);
+    
+    // แก้ไขบล็อกดักจับข้อผิดพลาดให้ปลอดภัยอย่างสมบูรณ์
+    // ดึงโครงสร้างข้อมูล Mock Data ทั้งชุดมาเตรียมไว้ก่อน
+    const mock = getMockData();
+    allRows = mock.slice(1);
+    
+    // บังคับสลับหน้าจอไปจำลองสถานะข้อมูลทั้งหมดแบบ Safe-mode
     buildWeekOptions();
     updateAgeBadges();
-    filterWeek('all');
+    
+    // เรียกคำสั่งประมวลผลตัวแปรหลักเพื่อบังคับให้ UI เปลี่ยนสถานะ
+    currentWeek = 'all';
+    filteredRows = [...allRows];
+    renderAll();
+    
+    // ปิดหน้าจอ Loading แน่นอน ไม่ค้างแน่นอนครับ
     hideLoading();
   }
 }
