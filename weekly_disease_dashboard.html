@@ -299,7 +299,7 @@ body{background:var(--bg);color:var(--white);font-family:var(--fb);font-size:14p
 const CONFIG = {
   // Google Sheet Published CSV URL
   // วิธีได้: File → Share → Publish to web → CSV → Copy link
-  SHEET_URL: 'https://corsproxy.io/?url=https://docs.google.com/spreadsheets/d/e/2PACX-1vQnmazPkHBQmdDghCh1tQlHTks4Y7t3oYyQA20__k4d2vNzKljKpsKszLZgAcAxeqQ6TEjmyv6jKqrM/pub?output=csv',
+  SHEET_URL: 'https://script.google.com/macros/s/AKfycbzvQ6FDLke1c_PHqb53hophp6JuP98n8lq_2OD5MF5jIihHVAIQt858W_5QSKBxrH6M/exec',
 
   // ชื่อโรงพยาบาล
   HOSPITAL: 'รพ.หันคา',
@@ -583,10 +583,17 @@ async function loadData() {
   setLoading('กำลังโหลดข้อมูลจาก Google Sheet...');
   try {
     let rows = [];
-    if (CONFIG.SHEET_URL && CONFIG.SHEET_URL !== 'YOUR_GOOGLE_SHEET_CSV_URL_HERE') {
-      const res = await fetch(CONFIG.SHEET_URL);
-      const csv = await res.text();
-      rows = parseCSV(csv);
+    if (CONFIG.SHEET_URL && !CONFIG.SHEET_URL.includes('YOUR_GOOGLE_SHEET')) {
+      const url = CONFIG.SHEET_URL.includes('script.google.com')
+        ? CONFIG.SHEET_URL + '?action=getData'
+        : CONFIG.SHEET_URL;
+      const res = await fetch(url);
+      const json = await res.json();
+      if (json.ok && json.data) {
+        rows = json.data; // already array of arrays from GAS
+      } else {
+        throw new Error(json.msg || 'GAS error');
+      }
     } else {
       rows = getMockData();
     }
