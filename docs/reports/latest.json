@@ -1,0 +1,60 @@
+{
+  "weekNumber": 27,
+  "weekYear": 2026,
+  "dateRange": "6 ก.ค.-12 ก.ค. 2569",
+  "totalCases": 47,
+  "totalDelta": 8,
+  "clusterCount": 2,
+  "notifiedCount": 6,
+  "diseases": [
+    {
+      "name": "มือเท้าปาก",
+      "count": 19,
+      "delta": 8,
+      "area": "ต.นางั่ว",
+      "status": "cluster"
+    },
+    {
+      "name": "ไข้เลือดออก",
+      "count": 14,
+      "delta": -2,
+      "area": "ต.ในเมือง",
+      "status": "ok"
+    },
+    {
+      "name": "ไข้หวัดใหญ่",
+      "count": 9,
+      "delta": 2,
+      "area": "อ.เมือง",
+      "status": "watch"
+    },
+    {
+      "name": "โรคตาแดง",
+      "count": 5,
+      "delta": 2,
+      "area": "ต.วังชมภู",
+      "status": "watch"
+    }
+  ],
+  "areas": {
+    "อ.เมือง": 28,
+    "อ.หล่มสัก": 8,
+    "อ.วิเชียรบุรี": 5
+  },
+  "alerts": [
+    "Cluster มือเท้าปาก ศูนย์เด็กเล็ก ต.นางั่ว"
+  ],
+  "actions": [
+    "สอบสวน cluster ภายใน 24 ชม."
+  ],
+  "epiCurve": [
+    4,
+    6,
+    7,
+    5,
+    9,
+    8,
+    8
+  ],
+  "generatedAt": "2026-07-01T04:09:42.722Z"
+}
