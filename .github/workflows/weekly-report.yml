@@ -1,0 +1,33 @@
+name: Weekly Disease Report
+
+on:
+  schedule:
+    - cron: '0 1 * * 1'
+  workflow_dispatch:
+
+permissions:
+  contents: write
+
+jobs:
+  generate-report:
+    runs-on: ubuntu-latest
+    timeout-minutes: 5
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: '20'
+          cache: 'npm'
+      - run: npm ci --omit=dev
+      - name: Generate weekly report
+        env:
+          DATA_SOURCE_URL: ${{ secrets.DATA_SOURCE_URL }}
+          WEBHOOK_SECRET:  ${{ secrets.WEBHOOK_SECRET }}
+        run: node src/scripts/generateWeeklyReport.js
+      - name: Commit report
+        run: |
+          git config user.name "github-actions[bot]"
+          git config user.email "github-actions[bot]@users.noreply.github.com"
+          git add docs/reports/
+          git diff --staged --quiet || git commit -m "report: weekly update"
+          git push
