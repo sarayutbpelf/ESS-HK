@@ -4,6 +4,8 @@ on:
   schedule:
     - cron: '0 1 * * 1'
   workflow_dispatch:
+  repository_dispatch:
+    types: [weekly_summary]
 
 permissions:
   contents: write
@@ -20,8 +22,7 @@ jobs:
 
       - name: Generate weekly report
         env:
-          DATA_SOURCE_URL: ${{ secrets.DATA_SOURCE_URL }}
-          WEBHOOK_SECRET:  ${{ secrets.WEBHOOK_SECRET }}
+          DISPATCH_PAYLOAD: ${{ toJson(github.event.client_payload) }}
         run: node src/scripts/generateWeeklyReport.js
 
       - name: Commit report
