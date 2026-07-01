@@ -1,0 +1,323 @@
+<!DOCTYPE html>
+<html lang="th">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>ระบบเฝ้าระวังโรค · รายงานรายสัปดาห์</title>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/Chart.js/4.4.1/chart.umd.min.js"></script>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/html2canvas/1.4.1/html2canvas.min.js"></script>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link href="https://fonts.googleapis.com/css2?family=Noto+Sans+Thai:wght@400;500;700;900&family=IBM+Plex+Sans+Thai:wght@300;400;500;700&display=swap" rel="stylesheet">
+<style>
+:root{--bg:#0A0A0A;--bg2:#111111;--bg3:#1A1A1A;--red:#FF3D00;--red2:#FF6B35;--red3:#C62800;--reddark:#1A0600;--amber:#FF9500;--green:#00E676;--white:#FFFFFF;--grey:#888888;--grey2:#444444;--border:rgba(255,61,0,0.15);--fd:'Noto Sans Thai',sans-serif;--fb:'IBM Plex Sans Thai',sans-serif}
+*{box-sizing:border-box;margin:0;padding:0}
+body{background:var(--bg);color:var(--white);font-family:var(--fb);min-height:100vh;overflow-x:hidden}
+::-webkit-scrollbar{width:4px}::-webkit-scrollbar-track{background:var(--bg2)}::-webkit-scrollbar-thumb{background:var(--red3);border-radius:2px}
+.topbar{position:sticky;top:0;z-index:100;background:rgba(10,10,10,0.92);backdrop-filter:blur(12px);border-bottom:1px solid var(--border);display:flex;align-items:center;justify-content:space-between;padding:0 32px;height:56px}
+.tb-left{display:flex;align-items:center;gap:14px}
+.tb-logo{width:28px;height:28px;border-radius:6px;background:linear-gradient(135deg,var(--red3),var(--red2));display:flex;align-items:center;justify-content:center;font-family:var(--fd);font-weight:900;font-size:14px;color:#fff;flex-shrink:0}
+.tb-name{font-family:var(--fd);font-weight:700;font-size:14px}
+.tb-badge{font-size:10px;font-weight:700;letter-spacing:.06em;text-transform:uppercase;background:var(--reddark);color:var(--red2);border:1px solid rgba(255,107,53,.3);padding:2px 8px;border-radius:3px}
+.tb-right{display:flex;align-items:center;gap:12px}
+.week-pill{display:flex;align-items:center;gap:8px;border:1px solid var(--border);border-radius:4px;padding:5px 12px;font-size:12px}
+.week-pill select{background:transparent;border:none;color:var(--white);font-family:var(--fb);font-size:12px;cursor:pointer;outline:none}
+.week-pill select option{background:var(--bg2)}
+.btn-dl{display:flex;align-items:center;gap:6px;background:linear-gradient(135deg,var(--red3),var(--red));border:none;color:#fff;padding:7px 16px;border-radius:4px;font-family:var(--fb);font-size:12px;font-weight:700;cursor:pointer;transition:opacity .15s;letter-spacing:.03em}
+.btn-dl:hover{opacity:.85}
+.hero{position:relative;overflow:hidden;padding:48px 32px 40px;background:linear-gradient(160deg,#1A0600 0%,#0A0A0A 55%);border-bottom:1px solid var(--border)}
+.hero::before{content:'';position:absolute;top:-60px;right:-80px;width:500px;height:500px;border-radius:50%;background:radial-gradient(circle,rgba(255,61,0,.12) 0%,transparent 70%);pointer-events:none}
+.hero-grid{display:grid;grid-template-columns:1fr 360px;gap:40px;align-items:start}
+.hero-eyebrow{font-size:11px;font-weight:700;letter-spacing:.12em;text-transform:uppercase;color:var(--red2);margin-bottom:10px}
+.hero-title{font-family:var(--fd);font-size:32px;font-weight:900;line-height:1.1;margin-bottom:8px}
+.hero-title span{background:linear-gradient(90deg,var(--red),var(--red2),var(--amber));-webkit-background-clip:text;-webkit-text-fill-color:transparent}
+.hero-sub{font-size:14px;color:var(--grey)}
+.hero-alert{display:flex;align-items:center;gap:10px;background:rgba(255,61,0,.08);border:1px solid rgba(255,61,0,.25);border-radius:4px;padding:10px 16px;margin-top:20px;font-size:13px}
+.pulse{width:8px;height:8px;border-radius:50%;background:var(--red);flex-shrink:0;animation:pulse 1.4s ease-in-out infinite}
+@keyframes pulse{0%,100%{opacity:1;transform:scale(1)}50%{opacity:.4;transform:scale(1.4)}}
+.compare-block{flex-shrink:0}
+.compare-label-row{display:flex;gap:8px;margin-bottom:10px;align-items:center}
+.cmp-tag{font-size:10px;font-weight:700;letter-spacing:.08em;text-transform:uppercase;padding:3px 10px;border-radius:3px}
+.cmp-tag.before{background:rgba(255,255,255,.08);color:var(--grey)}
+.cmp-tag.after{background:linear-gradient(90deg,var(--red3),var(--red));color:#fff}
+.compare-rows{display:flex;flex-direction:column;gap:6px}
+.cmp-row{display:grid;grid-template-columns:120px 1fr 1fr 44px;gap:6px;align-items:center}
+.cmp-name{font-size:11px;color:var(--grey);text-align:right;padding-right:8px}
+.cmp-bar-wrap{height:34px;border-radius:3px;overflow:hidden;position:relative;display:flex;align-items:center;justify-content:center}
+.cmp-bar-fill{position:absolute;inset:0;transform:scaleX(0);transform-origin:left;transition:transform .8s cubic-bezier(.23,1,.32,1)}
+.cmp-bar-wrap.before .cmp-bar-fill{background:rgba(255,255,255,.1)}
+.cmp-bar-wrap.after .cmp-bar-fill{background:linear-gradient(90deg,var(--red3),var(--red))}
+.cmp-pct{font-family:var(--fd);font-size:15px;font-weight:900;position:relative;z-index:1}
+.cmp-bar-wrap.before .cmp-pct{color:var(--grey)}
+.cmp-bar-wrap.after .cmp-pct{color:#fff}
+.cmp-delta{font-size:11px;font-weight:700;display:flex;align-items:center;justify-content:center;height:34px}
+.du{color:var(--red)}.dd{color:var(--green)}.deq{color:var(--grey)}
+.stat-row{display:grid;grid-template-columns:repeat(4,1fr);gap:1px;background:var(--border);border-top:1px solid var(--border);border-bottom:1px solid var(--border)}
+.stat-cell{background:var(--bg);padding:20px 24px;position:relative;overflow:hidden}
+.stat-cell::after{content:'';position:absolute;top:0;left:0;width:3px;height:100%}
+.c-red::after{background:var(--red)}.c-amber::after{background:var(--amber)}.c-green::after{background:var(--green)}.c-grey::after{background:var(--grey2)}
+.sc-label{font-size:11px;color:var(--grey);margin-bottom:6px;letter-spacing:.02em}
+.sc-num{font-family:var(--fd);font-size:36px;font-weight:900;line-height:1}
+.c-red .sc-num{color:var(--red)}.c-amber .sc-num{color:var(--amber)}.c-green .sc-num{color:var(--green)}.c-grey .sc-num{color:var(--grey)}
+.sc-delta{font-size:11px;margin-top:6px}
+.up{color:var(--red)}.dn{color:var(--green)}.eq{color:var(--grey)}
+.content{padding:28px 32px;display:grid;grid-template-columns:1fr 300px;gap:20px}
+.sec-label{font-size:10px;font-weight:700;letter-spacing:.1em;text-transform:uppercase;color:var(--red2);margin-bottom:14px;display:flex;align-items:center;gap:8px}
+.sec-label::after{content:'';flex:1;height:1px;background:var(--border)}
+.disease-list{margin-bottom:24px}
+.d-row{display:grid;grid-template-columns:160px 1fr 90px 100px 80px;gap:8px;align-items:center;padding:10px 0;border-bottom:1px solid rgba(255,255,255,.05)}
+.d-row:last-child{border-bottom:none}
+.d-name{font-size:13px;font-weight:500;display:flex;align-items:center;gap:6px}
+.d-dot{width:7px;height:7px;border-radius:50%;flex-shrink:0}
+.d-bar-track{height:8px;background:rgba(255,255,255,.05);border-radius:4px;overflow:hidden}
+.d-bar-fill{height:100%;border-radius:4px;transform:scaleX(0);transform-origin:left;transition:transform .9s cubic-bezier(.23,1,.32,1)}
+.d-count{font-family:var(--fd);font-size:15px;font-weight:900;text-align:right}
+.d-area{font-size:11px;color:var(--grey);text-align:right}
+.d-badge{font-size:10px;font-weight:700;padding:2px 7px;border-radius:3px;text-align:center}
+.badge-cluster{background:rgba(255,61,0,.15);color:var(--red2);border:1px solid rgba(255,61,0,.2)}
+.badge-watch{background:rgba(255,149,0,.12);color:var(--amber);border:1px solid rgba(255,149,0,.2)}
+.badge-ok{background:rgba(0,230,118,.08);color:var(--green);border:1px solid rgba(0,230,118,.15)}
+.chart-card{background:var(--bg2);border:1px solid rgba(255,255,255,.05);border-radius:4px;padding:18px;margin-bottom:16px}
+.chart-title{font-size:12px;font-weight:700;margin-bottom:4px;letter-spacing:.02em}
+.chart-sub{font-size:11px;color:var(--grey);margin-bottom:14px}
+.sidebar{display:flex;flex-direction:column;gap:14px}
+.side-card{background:var(--bg2);border:1px solid rgba(255,255,255,.05);border-radius:4px;padding:16px}
+.side-title{font-size:10px;font-weight:700;letter-spacing:.1em;text-transform:uppercase;color:var(--grey);margin-bottom:12px}
+.alert-item{display:flex;gap:10px;padding:7px 0;border-bottom:1px solid rgba(255,255,255,.04);font-size:12px;line-height:1.5}
+.alert-item:last-child{border-bottom:none}
+.alert-dot-s{width:6px;height:6px;border-radius:50%;flex-shrink:0;margin-top:4px}
+.area-row{display:flex;align-items:center;justify-content:space-between;padding:5px 0;font-size:12px;border-bottom:1px solid rgba(255,255,255,.04)}
+.area-row:last-child{border-bottom:none}
+.area-name{color:var(--grey)}.area-num{font-family:var(--fd);font-weight:700;color:var(--white)}
+.action-row{display:flex;gap:8px;padding:5px 0;font-size:12px;border-bottom:1px solid rgba(255,255,255,.04);line-height:1.5}
+.action-row:last-child{border-bottom:none}
+.action-arrow{color:var(--red2);flex-shrink:0;font-weight:700}
+.footer{border-top:1px solid var(--border);padding:14px 32px;display:flex;align-items:center;justify-content:space-between;font-size:11px;color:var(--grey2)}
+.loading{display:none;position:fixed;inset:0;background:rgba(10,10,10,.88);z-index:999;align-items:center;justify-content:center;flex-direction:column;gap:12px}
+.loading.show{display:flex}
+.spin{width:28px;height:28px;border:2px solid var(--grey2);border-top-color:var(--red);border-radius:50%;animation:spin .7s linear infinite}
+@keyframes spin{to{transform:rotate(360deg)}}
+#infographic{width:900px;position:fixed;left:-9999px;top:0;background:var(--bg);font-family:var(--fb)}
+.itop{background:linear-gradient(160deg,#1A0600 0%,#0A0A0A 60%);padding:24px 28px 20px;position:relative;overflow:hidden}
+.itop::before{content:'';position:absolute;top:-40px;right:-60px;width:380px;height:380px;border-radius:50%;background:radial-gradient(circle,rgba(255,61,0,.18) 0%,transparent 65%)}
+.ilogorow{display:flex;align-items:center;justify-content:space-between;margin-bottom:16px}
+.ilogoblk{display:flex;align-items:center;gap:10px}
+.ilogosq{width:34px;height:34px;border-radius:7px;background:linear-gradient(135deg,var(--red3),var(--red));display:flex;align-items:center;justify-content:center;font-family:var(--fd);font-weight:900;font-size:15px;color:#fff}
+.iorg{font-family:var(--fd);font-size:13px;font-weight:700}
+.iorgsub{font-size:10px;color:var(--grey);margin-top:2px}
+.iwblk{text-align:right}
+.iwlbl{font-size:10px;font-weight:700;letter-spacing:.1em;text-transform:uppercase;color:var(--grey);margin-bottom:2px}
+.iwnum{font-family:var(--fd);font-size:26px;font-weight:900;background:linear-gradient(90deg,var(--red),var(--red2));-webkit-background-clip:text;-webkit-text-fill-color:transparent}
+.iwdate{font-size:10px;color:var(--grey);margin-top:2px}
+.icmp{display:grid;grid-template-columns:1fr 1fr;gap:12px}
+.icmpside{background:rgba(255,255,255,.03);border-radius:4px;padding:12px}
+.icmptag{font-size:9px;font-weight:700;letter-spacing:.1em;text-transform:uppercase;margin-bottom:8px}
+.icmpitem{display:flex;align-items:center;gap:8px;margin-bottom:6px}
+.icmplbl{font-size:10px;color:var(--grey);width:90px;flex-shrink:0}
+.icmpbw{flex:1;height:20px;border-radius:3px;overflow:hidden;position:relative;display:flex;align-items:center;justify-content:center}
+.icmpbf{position:absolute;inset:0}
+.icmppct{font-family:var(--fd);font-size:11px;font-weight:900;position:relative;z-index:1}
+.istats{display:grid;grid-template-columns:repeat(4,1fr);border-top:1px solid var(--border);border-bottom:1px solid var(--border)}
+.istat{padding:12px 16px;border-right:1px solid var(--border)}
+.istat:last-child{border-right:none}
+.istatlbl{font-size:10px;color:var(--grey);margin-bottom:3px}
+.istatnum{font-family:var(--fd);font-size:20px;font-weight:900}
+.istatd{font-size:10px;margin-top:2px}
+.ibody{display:grid;grid-template-columns:1fr 200px;gap:0}
+.imain{padding:14px 18px;border-right:1px solid var(--border)}
+.iside{padding:14px 12px}
+.isectitle{font-size:9px;font-weight:700;letter-spacing:.1em;text-transform:uppercase;color:var(--red2);margin-bottom:8px}
+.idrow{display:flex;align-items:center;gap:8px;margin-bottom:7px}
+.idname{font-size:11px;width:120px;flex-shrink:0}
+.idbw{flex:1;height:6px;background:rgba(255,255,255,.06);border-radius:3px;overflow:hidden}
+.idbf{height:100%;border-radius:3px}
+.idcnt{font-family:var(--fd);font-size:12px;font-weight:900;width:24px;text-align:right}
+.iepibars{display:flex;align-items:flex-end;gap:3px;height:46px;margin-top:6px}
+.iepicol{flex:1;display:flex;flex-direction:column;align-items:center;gap:2px}
+.iepibar{width:100%;border-radius:2px 2px 0 0}
+.iepilbl{font-size:8px;color:var(--grey2)}
+.iarearow{display:flex;justify-content:space-between;font-size:10px;padding:4px 0;border-bottom:1px solid rgba(255,255,255,.04)}
+.iarearow:last-child{border-bottom:none}
+.iareaname{color:var(--grey)}.iareaval{font-family:var(--fd);font-weight:700;color:var(--red2)}
+.ialertitem{font-size:10px;color:rgba(255,100,60,.9);margin-bottom:4px;display:flex;gap:4px;line-height:1.4}
+.iactionitem{font-size:10px;color:var(--grey);margin-bottom:4px;display:flex;gap:4px;line-height:1.4}
+.iactionitem span:first-child{color:var(--red2);font-weight:700}
+.ifooter{background:var(--bg2);border-top:1px solid var(--border);padding:9px 18px;display:flex;justify-content:space-between;align-items:center;font-size:9px;color:var(--grey2)}
+</style>
+</head>
+<body>
+<header class="topbar">
+  <div class="tb-left">
+    <div class="tb-logo">ร</div>
+    <span class="tb-name">ระบบเฝ้าระวังโรค สสจ.เพชรบูรณ์</span>
+    <span class="tb-badge">เจ้าหน้าที่เท่านั้น</span>
+  </div>
+  <div class="tb-right">
+    <div class="week-pill">
+      <span style="color:var(--grey);font-size:11px">สัปดาห์ที่</span>
+      <select id="week-select" onchange="loadWeek(this.value)">
+        <option value="21">21 · 19–25 พ.ค.</option>
+        <option value="20">20 · 12–18 พ.ค.</option>
+        <option value="19">19 · 5–11 พ.ค.</option>
+      </select>
+    </div>
+    <button class="btn-dl" onclick="downloadInfographic()">↓ ดาวน์โหลด Infographic</button>
+  </div>
+</header>
+
+<section class="hero">
+  <div class="hero-grid">
+    <div>
+      <div class="hero-eyebrow">รายงานระบาดวิทยารายสัปดาห์</div>
+      <h1 class="hero-title">สัปดาห์ที่ <span id="hero-week">21</span><br>จ.เพชรบูรณ์</h1>
+      <p class="hero-sub" id="hero-date">19–25 พฤษภาคม 2568</p>
+      <div class="hero-alert">
+        <div class="pulse"></div>
+        <span id="hero-alert-text">พบ Cluster มือเท้าปาก 3 ราย ศูนย์เด็กเล็ก ต.นางั่ว — ต้องสอบสวนภายใน 24 ชม.</span>
+      </div>
+    </div>
+    <div class="compare-block">
+      <div class="compare-label-row">
+        <span style="font-size:10px;color:var(--grey);font-weight:700;letter-spacing:.06em;text-transform:uppercase;margin-right:auto">เปรียบเทียบ</span>
+        <span class="cmp-tag before">ก่อน</span>
+        <span class="cmp-tag after">ตอนนี้</span>
+        <span style="font-size:9px;color:var(--grey);width:44px;text-align:center">Δ</span>
+      </div>
+      <div class="compare-rows" id="cmp-rows"></div>
+    </div>
+  </div>
+</section>
+
+<div class="stat-row">
+  <div class="stat-cell c-red"><div class="sc-label">ผู้ป่วยสัปดาห์นี้</div><div class="sc-num" id="s-total">47</div><div class="sc-delta up" id="s-total-d">▲ +8 จากสัปดาห์ก่อน</div></div>
+  <div class="stat-cell c-amber"><div class="sc-label">โรคที่พบมากสุด</div><div class="sc-num" style="font-size:20px;padding-top:7px" id="s-top">มือเท้าปาก</div><div class="sc-delta" style="color:var(--amber)" id="s-top-n">19 ราย · 2 พื้นที่</div></div>
+  <div class="stat-cell c-green"><div class="sc-label">รพ.สต. รับแจ้งแล้ว</div><div class="sc-num" id="s-hsc">6</div><div class="sc-delta dn">✓ ครบทุกพื้นที่</div></div>
+  <div class="stat-cell c-grey"><div class="sc-label">Cluster ที่ต้องสอบสวน</div><div class="sc-num" id="s-cluster">2</div><div class="sc-delta up" id="s-cluster-d">▲ เพิ่ม 1 จากสัปดาห์ก่อน</div></div>
+</div>
+
+<div class="content">
+  <main>
+    <div class="sec-label">โรคที่ตรวจพบสัปดาห์นี้</div>
+    <div class="disease-list" id="disease-list"></div>
+    <div class="sec-label" style="margin-top:4px">แนวโน้มรายสัปดาห์</div>
+    <div class="chart-card"><div class="chart-title">ผู้ป่วย 8 สัปดาห์ย้อนหลัง</div><div class="chart-sub">แยกตามชนิดโรค</div><div style="height:175px"><canvas id="trend-chart"></canvas></div></div>
+    <div style="display:grid;grid-template-columns:1fr 1fr;gap:16px">
+      <div class="chart-card" style="margin-bottom:0"><div class="chart-title">Epidemic curve รายวัน</div><div class="chart-sub">สัปดาห์นี้</div><div style="height:110px"><canvas id="epi-chart"></canvas></div></div>
+      <div class="chart-card" style="margin-bottom:0"><div class="chart-title">สัดส่วนโรค</div><div class="chart-sub">สัปดาห์นี้</div><div style="height:110px"><canvas id="pie-chart"></canvas></div></div>
+    </div>
+  </main>
+  <aside class="sidebar">
+    <div class="side-card"><div class="side-title">ผู้ป่วยรายอำเภอ</div><div id="area-list"></div></div>
+    <div class="side-card"><div class="side-title">การแจ้งเตือน</div><div id="alert-list"></div></div>
+    <div class="side-card"><div class="side-title">มาตรการที่ต้องดำเนินการ</div><div id="action-list"></div></div>
+  </aside>
+</div>
+
+<footer class="footer">
+  <span>ข้อมูล รง.506 กรมควบคุมโรค · สสจ.เพชรบูรณ์</span>
+  <span>ข้อมูลนี้ไม่ระบุตัวบุคคล · สำหรับเจ้าหน้าที่เท่านั้น</span>
+</footer>
+
+<div class="loading" id="loading"><div class="spin"></div><span style="font-size:13px;color:var(--grey)">กำลังสร้าง Infographic...</span></div>
+
+<div id="infographic">
+  <div class="itop">
+    <div class="ilogorow">
+      <div class="ilogoblk"><div class="ilogosq">ร</div><div><div class="iorg">สำนักงานสาธารณสุขจังหวัดเพชรบูรณ์</div><div class="iorgsub">กลุ่มงานควบคุมโรคติดต่อ · ระบบเฝ้าระวัง รง.506</div></div></div>
+      <div class="iwblk"><div class="iwlbl">รายงานประจำ</div><div class="iwnum" id="i-wnum">สัปดาห์ที่ 21</div><div class="iwdate" id="i-wdate">19–25 พฤษภาคม 2568</div></div>
+    </div>
+    <div class="icmp">
+      <div class="icmpside"><div class="icmptag" style="color:var(--grey)">สัปดาห์ก่อน (BEFORE)</div><div id="i-cmp-before"></div></div>
+      <div class="icmpside" style="background:rgba(255,61,0,.06);border:1px solid rgba(255,61,0,.15)"><div class="icmptag" style="color:var(--red2)">สัปดาห์นี้ (NOW)</div><div id="i-cmp-after"></div></div>
+    </div>
+  </div>
+  <div class="istats">
+    <div class="istat"><div class="istatlbl">ผู้ป่วยสัปดาห์นี้</div><div class="istatnum" style="color:var(--red)" id="i-total">47</div><div class="istatd up" id="i-delta">▲ +8</div></div>
+    <div class="istat"><div class="istatlbl">โรคที่พบมากสุด</div><div class="istatnum" style="color:var(--amber);font-size:14px;padding-top:3px" id="i-top">มือเท้าปาก</div><div class="istatd" style="color:var(--amber)" id="i-top-n">19 ราย</div></div>
+    <div class="istat"><div class="istatlbl">Cluster ที่สอบสวน</div><div class="istatnum" style="color:var(--red)" id="i-cluster">2</div><div class="istatd up">แห่ง</div></div>
+    <div class="istat"><div class="istatlbl">รพ.สต. รับแจ้งแล้ว</div><div class="istatnum" style="color:var(--green)" id="i-hsc">6</div><div class="istatd dn">แห่ง ✓</div></div>
+  </div>
+  <div class="ibody">
+    <div class="imain">
+      <div class="isectitle">โรคที่ตรวจพบ</div>
+      <div id="i-drows"></div>
+      <div style="margin-top:10px"><div class="isectitle">Epidemic curve</div><div class="iepibars" id="i-epi"></div></div>
+    </div>
+    <div class="iside">
+      <div class="isectitle">ผู้ป่วยรายอำเภอ</div><div id="i-areas"></div>
+      <div style="margin-top:10px"><div class="isectitle">การแจ้งเตือน</div><div id="i-alerts"></div></div>
+      <div style="margin-top:10px"><div class="isectitle">มาตรการ</div><div id="i-actions"></div></div>
+    </div>
+  </div>
+  <div class="ifooter"><span>ข้อมูล รง.506 · สสจ.เพชรบูรณ์ · <span id="i-gendate"></span></span><span>⚠️ ไม่ระบุตัวบุคคล · สำหรับเจ้าหน้าที่เท่านั้น</span></div>
+</div>
+
+<script>
+const DC={'มือเท้าปาก':'#FF6B35','ไข้เลือดออก':'#FF3D00','ไข้หวัดใหญ่':'#00E676','โรคตาแดง':'#FF9500'};
+const WK={
+  21:{wn:21,dr:'19–25 พฤษภาคม 2568',tot:47,dlt:8,top:'มือเท้าปาก',topN:19,hsc:6,cl:2,
+    alert:'พบ Cluster มือเท้าปาก 3 ราย ศูนย์เด็กเล็ก ต.นางั่ว — สอบสวนภายใน 24 ชม.',
+    cmp:[{n:'มือเท้าปาก',b:11,a:19},{n:'ไข้เลือดออก',b:16,a:14},{n:'ไข้หวัดใหญ่',b:7,a:9},{n:'โรคตาแดง',b:3,a:5}],
+    dis:[{n:'มือเท้าปาก',c:19,p:11,ar:'ต.นางั่ว, ต.ในเมือง',s:'cluster'},{n:'ไข้เลือดออก',c:14,p:16,ar:'ต.ในเมือง, ต.บ้านโตก',s:'ok'},{n:'ไข้หวัดใหญ่',c:9,p:7,ar:'อ.เมือง, อ.หล่มสัก',s:'watch'},{n:'โรคตาแดง',c:5,p:3,ar:'ต.วังชมภู',s:'watch'}],
+    epi:[4,6,7,5,9,8,8],ebd:{'มือเท้าปาก':[2,3,2,1,4,4,3],'ไข้เลือดออก':[1,2,3,2,2,2,2],'ไข้หวัดใหญ่':[1,1,2,2,3,2,3]},
+    areas:{'อ.เมือง':28,'อ.หล่มสัก':8,'อ.วิเชียรบุรี':5,'อ.บึงสามพัน':3,'อ.หนองไผ่':3},
+    alerts:['Cluster มือเท้าปาก ศูนย์เด็กเล็ก ต.นางั่ว → สอบสวน 24 ชม.','ไข้เลือดออกสูงกว่าค่ามัธยฐาน 5 ปี'],
+    actions:['สอบสวน cluster มือเท้าปาก ตาม JIT กรมควบคุมโรค','ส่ง Event-based Surveillance ถึง สสจ.','คัดกรองเด็กศูนย์เด็กเล็ก ต.นางั่ว','สำรวจแหล่งเพาะยุงรัศมี 100 เมตร'],
+    tr:{lb:['ส.13','ส.14','ส.15','ส.16','ส.17','ส.18','ส.19','ส.20','ส.21'],hf:[5,7,8,6,9,11,13,11,19],dg:[8,9,10,11,13,15,14,16,14],fl:[3,4,5,6,5,7,8,7,9]}},
+  20:{wn:20,dr:'12–18 พฤษภาคม 2568',tot:39,dlt:3,top:'ไข้เลือดออก',topN:16,hsc:5,cl:1,
+    alert:'ไข้เลือดออก 16 ราย สูงกว่าค่ามัธยฐาน 5 ปี ใน อ.เมือง',
+    cmp:[{n:'มือเท้าปาก',b:9,a:11},{n:'ไข้เลือดออก',b:13,a:16},{n:'ไข้หวัดใหญ่',b:8,a:7},{n:'โรคตาแดง',b:6,a:5}],
+    dis:[{n:'ไข้เลือดออก',c:16,p:13,ar:'ต.ในเมือง, ต.บ้านโตก',s:'watch'},{n:'มือเท้าปาก',c:11,p:9,ar:'ต.นางั่ว',s:'cluster'},{n:'ไข้หวัดใหญ่',c:7,p:8,ar:'อ.เมือง',s:'ok'},{n:'โรคตาแดง',c:5,p:6,ar:'ต.วังชมภู',s:'ok'}],
+    epi:[5,5,6,6,7,5,5],ebd:{'มือเท้าปาก':[1,2,2,2,1,2,1],'ไข้เลือดออก':[2,2,3,2,3,2,2],'ไข้หวัดใหญ่':[2,1,1,2,3,1,2]},
+    areas:{'อ.เมือง':22,'อ.หล่มสัก':7,'อ.วิเชียรบุรี':5,'อ.บึงสามพัน':3,'อ.หนองไผ่':2},
+    alerts:['ไข้เลือดออกสูงกว่าค่ามัธยฐาน 5 ปีใน อ.เมือง','Cluster มือเท้าปาก ต.นางั่ว → ติดตามต่อ'],
+    actions:['เฝ้าระวังไข้เลือดออก ลงพื้นที่ อ.เมือง','ส่งทีมสำรวจยุง 5 ชุมชนเสี่ยง','รายงาน Event-based ถึง สสจ.'],
+    tr:{lb:['ส.12','ส.13','ส.14','ส.15','ส.16','ส.17','ส.18','ส.19','ส.20'],hf:[4,5,7,8,6,9,11,13,11],dg:[7,8,9,10,11,13,15,14,16],fl:[4,3,4,5,6,5,7,8,7]}}
+};
+let cur=21,tC,eC,pC;
+function loadWeek(w){cur=parseInt(w);const d=WK[cur]||WK[21];rHero(d);rCmp(d);rStats(d);rDis(d);rCharts(d);rSide(d);document.getElementById('week-select').value=cur}
+function rHero(d){document.getElementById('hero-week').textContent=d.wn;document.getElementById('hero-date').textContent=d.dr;document.getElementById('hero-alert-text').textContent=d.alert}
+function rCmp(d){
+  const mx=Math.max(...d.cmp.flatMap(c=>[c.b,c.a]));
+  document.getElementById('cmp-rows').innerHTML=d.cmp.map(c=>{
+    const bw=Math.round(c.b/mx*100),aw=Math.round(c.a/mx*100),df=c.a-c.b;
+    const cls=df>0?'du':df<0?'dd':'deq',sym=df>0?`▲ +${df}`:df<0?`▼ ${df}`:'—';
+    return`<div class="cmp-row"><span class="cmp-name">${c.n}</span><div class="cmp-bar-wrap before" data-w="${bw}"><div class="cmp-bar-fill"></div><span class="cmp-pct">${c.b}</span></div><div class="cmp-bar-wrap after" data-w="${aw}"><div class="cmp-bar-fill"></div><span class="cmp-pct">${c.a}</span></div><div class="cmp-delta ${cls}">${sym}</div></div>`;}).join('');
+  requestAnimationFrame(()=>{document.querySelectorAll('.cmp-bar-wrap').forEach(el=>el.querySelector('.cmp-bar-fill').style.transform=`scaleX(${el.dataset.w/100})`)})}
+function rStats(d){document.getElementById('s-total').textContent=d.tot;document.getElementById('s-total-d').textContent=`▲ +${d.dlt} จากสัปดาห์ก่อน`;document.getElementById('s-top').textContent=d.top;document.getElementById('s-top-n').textContent=`${d.topN} ราย`;document.getElementById('s-hsc').textContent=d.hsc;document.getElementById('s-cluster').textContent=d.cl}
+function rDis(d){
+  const mx=Math.max(...d.dis.map(x=>x.c));
+  const lbl={cluster:'badge-cluster',watch:'badge-watch',ok:'badge-ok'},txt={cluster:'⚠ Cluster',watch:'ติดตาม',ok:'ปกติ'};
+  document.getElementById('disease-list').innerHTML=d.dis.map(x=>{
+    const bw=Math.round(x.c/mx*100),df=x.c-x.p;
+    const dh=df>0?`<span class="up">▲ +${df}</span>`:df<0?`<span class="dn">▼ ${df}</span>`:`<span class="eq">—</span>`;
+    return`<div class="d-row"><div class="d-name"><span class="d-dot" style="background:${DC[x.n]||'#888'}"></span>${x.n}</div><div class="d-bar-track"><div class="d-bar-fill" data-w="${bw/100}" style="background:${DC[x.n]||'#888'}"></div></div><div class="d-count" style="color:${DC[x.n]||'#fff'}">${x.c} ${dh}</div><div class="d-area">${x.ar.split(',')[0]}</div><div class="d-badge ${lbl[x.s]}">${txt[x.s]}</div></div>`;}).join('');
+  requestAnimationFrame(()=>{document.querySelectorAll('.d-bar-fill').forEach(el=>el.style.transform=`scaleX(${el.dataset.w})`)});}
+function rCharts(d){
+  const F="'IBM Plex Sans Thai',sans-serif",G='rgba(255,255,255,.06)',T='#555';
+  if(tC)tC.destroy();tC=new Chart(document.getElementById('trend-chart'),{type:'line',data:{labels:d.tr.lb,datasets:[{label:'มือเท้าปาก',data:d.tr.hf,borderColor:'#FF6B35',backgroundColor:'rgba(255,107,53,.07)',tension:.4,pointRadius:2,borderWidth:2},{label:'ไข้เลือดออก',data:d.tr.dg,borderColor:'#FF3D00',backgroundColor:'rgba(255,61,0,.07)',tension:.4,pointRadius:2,borderWidth:2},{label:'ไข้หวัดใหญ่',data:d.tr.fl,borderColor:'#00E676',backgroundColor:'rgba(0,230,118,.05)',tension:.4,pointRadius:2,borderWidth:2}]},options:{responsive:true,maintainAspectRatio:false,plugins:{legend:{labels:{color:T,font:{size:10,family:F},boxWidth:10}}},scales:{x:{grid:{color:G},ticks:{color:T,font:{size:10,family:F}}},y:{grid:{color:G},ticks:{color:T,font:{size:10,family:F}},beginAtZero:true}}}});
+  const days=['จ','อ','พ','พฤ','ศ','ส','อา'];if(eC)eC.destroy();eC=new Chart(document.getElementById('epi-chart'),{type:'bar',data:{labels:days,datasets:Object.entries(d.ebd).map(([k,v])=>({label:k,data:v,backgroundColor:DC[k]||'#888',borderRadius:2}))},options:{responsive:true,maintainAspectRatio:false,plugins:{legend:{labels:{color:T,font:{size:9,family:F},boxWidth:8}}},scales:{x:{stacked:true,grid:{color:G},ticks:{color:T,font:{size:9,family:F}}},y:{stacked:true,grid:{color:G},ticks:{color:T,font:{size:9,family:F}},beginAtZero:true}}}});
+  if(pC)pC.destroy();pC=new Chart(document.getElementById('pie-chart'),{type:'doughnut',data:{labels:d.dis.map(x=>x.n),datasets:[{data:d.dis.map(x=>x.c),backgroundColor:d.dis.map(x=>DC[x.n]||'#888'),borderWidth:0}]},options:{responsive:true,maintainAspectRatio:false,cutout:'65%',plugins:{legend:{position:'bottom',labels:{color:T,font:{size:9,family:F},boxWidth:8,padding:5}}}}});}
+function rSide(d){document.getElementById('area-list').innerHTML=Object.entries(d.areas).map(([k,v])=>`<div class="area-row"><span class="area-name">${k}</span><span class="area-num">${v}</span></div>`).join('');document.getElementById('alert-list').innerHTML=d.alerts.map(a=>`<div class="alert-item"><div class="alert-dot-s" style="background:var(--red)"></div><span>${a}</span></div>`).join('');document.getElementById('action-list').innerHTML=d.actions.map(a=>`<div class="action-row"><span class="action-arrow">→</span><span>${a}</span></div>`).join('');}
+function buildInfo(d){
+  document.getElementById('i-wnum').textContent=`สัปดาห์ที่ ${d.wn}`;document.getElementById('i-wdate').textContent=d.dr;document.getElementById('i-total').textContent=d.tot;document.getElementById('i-delta').textContent=`▲ +${d.dlt}`;document.getElementById('i-top').textContent=d.top;document.getElementById('i-top-n').textContent=`${d.topN} ราย`;document.getElementById('i-cluster').textContent=d.cl;document.getElementById('i-hsc').textContent=d.hsc;document.getElementById('i-gendate').textContent=new Date().toLocaleDateString('th-TH',{day:'numeric',month:'short',year:'numeric'});
+  const mx=Math.max(...d.cmp.flatMap(c=>[c.b,c.a]));
+  const ch=(key)=>d.cmp.map(c=>{const v=c[key],w=Math.round(v/mx*100),col=key==='a'?'linear-gradient(90deg,#C62800,#FF3D00)':'rgba(255,255,255,.1)';return`<div class="icmpitem"><span class="icmplbl">${c.n}</span><div class="icmpbw"><div class="icmpbf" style="width:${w}%;background:${col}"></div><span class="icmppct" style="color:${key==='a'?'#fff':'#888'}">${v}</span></div></div>`;}).join('');
+  document.getElementById('i-cmp-before').innerHTML=ch('b');document.getElementById('i-cmp-after').innerHTML=ch('a');
+  const mxd=Math.max(...d.dis.map(x=>x.c));document.getElementById('i-drows').innerHTML=d.dis.map(x=>{const w=Math.round(x.c/mxd*100);return`<div class="idrow"><span class="idname">${x.n}</span><div class="idbw"><div class="idbf" style="width:${w}%;background:${DC[x.n]||'#888'}"></div></div><span class="idcnt" style="color:${DC[x.n]||'#fff'}">${x.c}</span></div>`;}).join('');
+  const me=Math.max(...d.epi);const dy=['จ','อ','พ','พฤ','ศ','ส','อา'];document.getElementById('i-epi').innerHTML=d.epi.map((v,i)=>{const h=Math.round(v/me*42),col=v===me?'#FF3D00':'#2a1008';return`<div class="iepicol"><div class="iepibar" style="height:${h}px;background:${col};border:1px solid rgba(255,61,0,.3)"></div><div class="iepilbl">${dy[i]}</div></div>`;}).join('');
+  document.getElementById('i-areas').innerHTML=Object.entries(d.areas).map(([k,v])=>`<div class="iarearow"><span class="iareaname">${k}</span><span class="iareaval">${v}</span></div>`).join('');
+  document.getElementById('i-alerts').innerHTML=d.alerts.map(a=>`<div class="ialertitem"><span>⚠</span><span>${a}</span></div>`).join('');
+  document.getElementById('i-actions').innerHTML=d.actions.map(a=>`<div class="iactionitem"><span>→</span><span>${a}</span></div>`).join('');
+}
+async function downloadInfographic(){
+  document.getElementById('loading').classList.add('show');
+  buildInfo(WK[cur]||WK[21]);await new Promise(r=>setTimeout(r,200));
+  const el=document.getElementById('infographic');el.style.cssText='position:absolute;left:0;top:0;z-index:9999;width:900px';
+  try{const cv=await html2canvas(el,{scale:2,backgroundColor:'#0A0A0A',useCORS:true,logging:false});const a=document.createElement('a');a.download=`โรคระบาด_สัปดาห์${cur}_2568.png`;a.href=cv.toDataURL('image/png');a.click();}
+  catch(e){alert('Error: '+e.message);}
+  finally{el.style.cssText='position:fixed;left:-9999px;top:0;width:900px';document.getElementById('loading').classList.remove('show');}
+}
+loadWeek(21);
+</script>
+</body>
+</html>
