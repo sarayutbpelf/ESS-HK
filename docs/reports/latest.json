@@ -1,7 +1,7 @@
 {
-  "weekNumber": 43,
+  "weekNumber": 44,
   "weekYear": 2026,
-  "dateRange": "26 ต.ค.-1 พ.ย. 2569",
+  "dateRange": "2 พ.ย.-8 พ.ย. 2569",
   "totalCases": 47,
   "totalDelta": 8,
   "clusterCount": 2,
@@ -56,5 +56,5 @@
     8,
     8
   ],
-  "generatedAt": "2026-10-19T05:25:24.484Z"
+  "generatedAt": "2026-10-26T05:29:59.652Z"
 }
